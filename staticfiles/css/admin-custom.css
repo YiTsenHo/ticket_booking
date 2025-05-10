@@ -1,0 +1,60 @@
+#changelist-filter h3 {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    background-color: #f5f5f5;
+    padding: 8px 15px;
+}
+
+.field-status {
+    text-align: center;
+}
+
+#changelist-filter li.selected {
+    font-weight: bold;
+}
+
+#changelist-filter li a {
+    display: block;
+    padding: 5px 15px;
+}
+
+#changelist-filter li a:hover {
+    background-color: #f0f0f0;
+}
+
+/* 改善座位信息顯示 */
+.field-display_seat {
+    font-weight: bold;
+}
+
+/* 預訂狀態顯示 */
+.field-status span {
+    padding: 3px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    min-width: 60px;
+    text-align: center;
+}
+
+/* 場次標籤 */
+.field-show_date {
+    font-weight: bold;
+    color: #3366cc;
+}
+
+/* 列表表格樣式 */
+#result_list thead th {
+    background-color: #417690;
+    color: white;
+    text-align: left;
+    padding: 8px;
+}
+
+#result_list tbody tr:nth-child(odd) {
+    background-color: #f9f9f9;
+}
+
+#result_list tbody tr:hover {
+    background-color: #f0f0f0;
+}

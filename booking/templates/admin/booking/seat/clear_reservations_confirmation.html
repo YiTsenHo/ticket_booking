@@ -1,0 +1,125 @@
+{% extends "admin/base_site.html" %}
+{% load i18n l10n admin_urls static %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/admin-custom.css' %}">
+  <style>
+    .confirmation-container {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 5px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .warning-icon {
+      color: #f44336;
+      font-size: 50px;
+      display: block;
+      text-align: center;
+    }
+    
+    .confirmation-title {
+      color: #333;
+      text-align: center;
+      margin: 20px 0;
+    }
+    
+    .confirmation-message {
+      margin: 20px 0;
+      padding: 15px;
+      background-color: #fffbf0;
+      border-left: 5px solid #ffc107;
+      color: #333;
+    }
+    
+    .confirmation-summary {
+      background-color: #f8f9fa;
+      padding: 20px;
+      border-radius: 5px;
+      margin: 20px 0;
+    }
+    
+    .confirmation-summary p {
+      margin: 5px 0;
+    }
+    
+    .button-container {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 30px;
+    }
+    
+    .cancel-button {
+      background-color: #f8f9fa;
+      color: #333;
+      border: 1px solid #dee2e6;
+      padding: 10px 20px;
+      border-radius: 5px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+    
+    .cancel-button:hover {
+      background-color: #e9ecef;
+    }
+    
+    .confirm-button {
+      background-color: #f44336;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .confirm-button:hover {
+      background-color: #d32f2f;
+    }
+  </style>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+&rsaquo; <a href="{% url 'admin:booking_seat_changelist' %}">座位管理</a>
+&rsaquo; 確認清除預訂
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="confirmation-container">
+  <span class="warning-icon">⚠️</span>
+  <h1 class="confirmation-title">確認清除所選座位的預訂</h1>
+  
+  <div class="confirmation-message">
+    <p>您即將清除 <strong>{{ seats_count }}</strong> 個座位的預訂資料，其中有 <strong>{{ reserved_count }}</strong> 個已被預訂。</p>
+    <p>此操作無法撤消，請確認您要繼續。</p>
+  </div>
+  
+  <div class="confirmation-summary">
+    <p><strong>總選擇座位數：</strong> {{ seats_count }}</p>
+    <p><strong>已預訂座位數：</strong> {{ reserved_count }}</p>
+    <p><strong>未預訂座位數：</strong> {{ seats_count|add:"-"|add:reserved_count }}</p>
+  </div>
+  
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="clear_reservations" />
+    <input type="hidden" name="apply" value="yes" />
+    {% for obj in queryset %}
+    <input type="hidden" name="{{ action_checkbox_name }}" value="{{ obj.pk|unlocalize }}" />
+    {% endfor %}
+    
+    <div class="button-container">
+      <a href="{% url 'admin:booking_seat_changelist' %}" class="cancel-button">取消</a>
+      <button type="submit" class="confirm-button">確認清除預訂</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

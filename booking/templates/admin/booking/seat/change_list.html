@@ -1,0 +1,133 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls static %}
+
+{% block object-tools-items %}
+    {{ block.super }}
+    <li>
+        <a href="{% url 'admin:seat-reservation-stats' %}" class="btn">查看統計</a>
+    </li>
+{% endblock %}
+
+{% block content %}
+  <div class="dashboard-summary">
+    <div class="date-filter-tabs">
+      <a href="." class="date-tab {% if not request.GET.date %}active{% endif %}">全部場次</a>
+      {% for date in dates %}
+        <a href="?date={{ date.value }}" class="date-tab {% if request.GET.date == date.value %}active{% endif %}">{{ date.display }}</a>
+      {% endfor %}
+    </div>
+  </div>
+  {{ block.super }}
+{% endblock %}
+
+{% block extrahead %}
+  {{ block.super }}
+  <style>
+    .dashboard-summary {
+      margin-bottom: 20px;
+    }
+    
+    .date-filter-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .date-tab {
+      padding: 8px 16px;
+      background-color: #f8f9fa;
+      color: #333;
+      border-radius: 20px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+    
+    .date-tab:hover {
+      background-color: #e9ecef;
+    }
+    
+    .date-tab.active {
+      background-color: #1a2a6c;
+      color: white;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* 座位樣式 */
+    .seat-info {
+      display: flex;
+      align-items: center;
+    }
+    
+    .seat-tag {
+      display: inline-block;
+      width: 30px;
+      height: 30px;
+      line-height: 30px;
+      text-align: center;
+      border-radius: 4px;
+      margin-right: 10px;
+      font-weight: bold;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+    
+    .seat-tag.occupied {
+      background-color: #ffebee;
+      color: #f44336;
+      border: 1px solid #f44336;
+    }
+    
+    .seat-tag.available {
+      background-color: #e8f5e9;
+      color: #4caf50;
+      border: 1px solid #4caf50;
+    }
+    
+    .seat-position {
+      font-weight: normal;
+      color: #555;
+    }
+    
+    /* 狀態標籤樣式 */
+    .status-tag {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+      text-align: center;
+      min-width: 80px;
+    }
+    
+    .status-tag.reserved {
+      background-color: #ffebee;
+      color: #f44336;
+      border: 1px solid #f44336;
+    }
+    
+    .status-tag.available {
+      background-color: #e8f5e9;
+      color: #4caf50;
+      border: 1px solid #4caf50;
+    }
+    
+    /* 預訂信息樣式 */
+    .dept-tag {
+      display: inline-block;
+      background-color: #e3f2fd;
+      color: #1a2a6c;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      margin-left: 5px;
+    }
+    
+    /* 日期標籤樣式 */
+    .date-tag {
+      background-color: #e3f2fd;
+      color: #1a2a6c;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+  </style>
+{% endblock %}

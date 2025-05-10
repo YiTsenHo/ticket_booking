@@ -1,0 +1,48 @@
+{% extends 'booking/base.html' %}
+
+{% block title %}方形海演出訂票{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <h1 class="display-4 mb-4 text-center">方形海演出訂票</h1>
+        <div class="col-md-6 text-center"> <!-- 從 col-md-8 改為 col-md-6，縮小容器 -->           
+            <div class="card bg-dark text-white mb-5" style="max-width: 400px; margin: 0 auto;"> <!-- 添加 max-width 限制尺寸 -->
+                <img src="https://placehold.jp/594x841.png" class="card-img opacity-50" alt="方形海演出海報" 
+                     style="width: 100%; height: auto;"> <!-- 確保圖片寬度為100%，高度自動調整以保持比例 -->
+                <div class="card-img-overlay d-flex flex-column justify-content-center">
+                    <p class="card-text">日期：5月22日 - 5月24日</p>
+                    <p class="card-text">地點：黑盒子</p>
+                    <div class="mt-auto"> <!-- 將按鈕放在底部 -->
+                        <a href="{% url 'seat_list' %}" class="btn btn-primary btn-lg px-4 py-2"> <!-- 稍微縮小按鈕大小 -->
+                            <i class="bi bi-ticket-perforated-fill me-2"></i>立即訂票
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+<style>
+/* 自定義樣式，確保海報顯示適當 */
+.card-img {
+    object-fit: contain; /* 保持原始比例 */
+    max-height: 600px; /* 限制最大高度 */
+}
+
+@media (max-width: 768px) {
+    .display-4 {
+        font-size: 1.8rem; /* 在小螢幕上縮小標題 */
+    }
+    .card {
+        max-width: 300px !important; /* 在小螢幕上進一步縮小卡片 */
+    }
+    .btn-lg {
+        font-size: 1rem;
+        padding: 0.375rem 0.75rem !important;
+    }
+}
+</style>
+{% endblock %}

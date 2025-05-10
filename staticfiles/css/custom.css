@@ -1,0 +1,67 @@
+.card {
+    transition: transform 0.2s;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.navbar {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary {
+    border-radius: 20px;
+    padding: 8px 20px;
+}
+
+.seat.selected {
+    background-color: #6feaf6;
+    transform: scale(1.05);
+}
+
+.seat.occupied {
+    background-color: #ff4444;
+    cursor: not-allowed;
+}
+
+.modal-header.bg-success {
+    background-color: #28a745 !important;
+    color: #fff;
+}
+
+.modal-header.bg-gradient-success {
+    background: linear-gradient(90deg, #28a745, #218838);
+    color: #fff;
+}
+
+.modal-body p {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #333;
+}
+
+.modal-body i {
+    margin-top: 1rem;
+}
+
+.btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 8px;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+}

@@ -1,0 +1,401 @@
+{% extends 'booking/base.html' %}
+
+{% block title %}座位列表{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-md-5">
+    <h1 class="text-center mt-5 mb-4">方形海演出訂票系統</h1>
+
+    <!-- 顯示成功訊息 -->
+    {% if success_message %}
+    <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow-lg border-0">
+                <div class="modal-header bg-gradient-success text-white">
+                    <h5 class="modal-title fw-bold" id="successModalLabel">🎉 預訂成功！</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <p class="fs-4 text-dark">{{ success_message }}</p>
+                    <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-success px-4 py-2" id="successConfirmButton">確認</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+            successModal.show();
+
+            document.getElementById('successConfirmButton').addEventListener('click', function() {
+                window.location.href = "{% url 'seat_list' %}";
+            });
+        });
+    </script>
+    {% endif %}
+
+    <!-- 顯示錯誤訊息 -->
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- 步驟 1：填寫訂票資訊 -->
+    {% if not booking_info %}
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-8 col-xl-6">
+            <div class="booking-form-container p-4 rounded shadow">
+                <h3 class="text-center mb-4">請填寫訂票資訊</h3>
+                <form method="post" action="{% url 'seat_list' %}" class="booking-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="step" value="1">
+                    
+                    <div class="mb-3">
+                        <label for="reserver_name" class="form-label">姓名</label>
+                        <input type="text" class="form-control" id="reserver_name" name="reserver_name" required placeholder="請輸入姓名">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="department" class="form-label">系級</label>
+                        <input type="text" class="form-control" id="department" name="department" required placeholder="請輸入系級">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="date" class="form-label">場次選擇</label>
+                        <select class="form-select" id="date" name="date" required>
+                            <option value="5/22">5月22日</option>
+                            <option value="5/23">5月23日</option>
+                            <option value="5/24">5月24日</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="ticket_count" class="form-label">購票張數 (1-5張)</label>
+                        <input type="number" class="form-control" id="ticket_count" name="ticket_count" min="1" max="5" value="1" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">下一步：選擇座位</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 步驟 2：選擇座位 -->
+    {% else %}
+    <div class="text-center mb-4">
+        <h3>座位選擇</h3>
+        <div class="ticket-info mb-3">
+            <p>訂票人：<span class="fw-bold">{{ booking_info.reserver_name }}</span> ({{ booking_info.department }})</p>
+            <p>場次：<span class="fw-bold">{{ booking_info.date }}</span></p>
+            <p>可選座位數：<span id="remainingSeats" class="badge bg-primary">{{ booking_info.ticket_count }}</span>張</p>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-center gap-2 mb-3">
+        <form method="post" class="d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="reset" value="1">
+            <button type="submit" class="btn btn-secondary">返回修改資料</button>
+        </form>
+    </div>
+
+    <!-- 座位表區域 - 縮減寬度並確保手機版顯示正確 -->
+    <div class="seat-selection-container mx-auto" style="max-width: min(95vw, 600px);">
+        <!-- 螢幕指示 -->
+        <div class="screen mb-4">
+            <div class="screen-inner">演出舞台</div>
+        </div>
+        
+        <!-- 座位圖示說明 -->
+        <div class="seat-legend d-flex justify-content-center flex-wrap mb-3">
+            <div class="d-flex align-items-center me-3 mb-2">
+                <div class="seat-legend-item available"></div>
+                <span class="ms-1">可選座位</span>
+            </div>
+            <div class="d-flex align-items-center me-3 mb-2">
+                <div class="seat-legend-item selected"></div>
+                <span class="ms-1">已選座位</span>
+            </div>
+            <div class="d-flex align-items-center mb-2">
+                <div class="seat-legend-item occupied"></div>
+                <span class="ms-1">已訂座位</span>
+            </div>
+        </div>
+
+        <!-- 座位表 - 增加水平滾動容器 -->
+        <div class="seat-map-scroll-container">
+            <div id="seatMap" class="seat-container">
+                {% for row in seat_matrix %}
+                <div class="seat-row">
+                    <!-- 顯示排次 -->
+                    <div class="row-label">{{ forloop.counter|lower }}排</div>
+                    
+                    {% for seat in row %}
+                        {% if seat == "stair" %}
+                            <div class="stair"></div>
+                        {% elif seat == "empty" %}
+                            <div class="empty-seat"></div>
+                        {% elif seat %}
+                            <div class="seat {% if seat.is_reserved %}occupied{% else %}available{% endif %}"
+                                 data-seat-id="{{ seat.id }}" data-seat-number="{{ seat.seat_number }}">
+                                {{ seat.column_number }}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- 確認預訂表單 -->
+        <form id="bookingForm" method="post" class="mt-4 mb-3 pb-2">
+            {% csrf_token %}
+            <input type="hidden" name="selected_seats" id="selectedSeatsInput">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>已選: <span id="selectedSeatsCount">0</span>/<span>{{ booking_info.ticket_count }}</span> 個座位</div>
+            </div>
+            <button type="submit" id="bookButton" class="btn btn-primary w-100 py-2" style="font-size: 1.1rem; margin-bottom: 30px;" disabled>確認預訂</button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const seatMap = document.getElementById('seatMap');
+    if (!seatMap) return; // 如果不在座位選擇頁面，直接返回
+    
+    const selectedSeatsInput = document.getElementById('selectedSeatsInput');
+    const bookButton = document.getElementById('bookButton');
+    const maxSeats = parseInt(document.getElementById('remainingSeats').textContent, 10);
+    const selectedSeatsCount = document.getElementById('selectedSeatsCount');
+    let selectedSeats = [];
+    let selectedSeatNumbers = [];
+
+    seatMap.addEventListener('click', function(e) {
+        const seat = e.target.closest('.seat.available');
+        if (!seat) return;
+
+        const seatId = seat.dataset.seatId;
+        const seatNumber = seat.dataset.seatNumber;
+
+        if (seat.classList.contains('selected')) {
+            // 取消選擇
+            seat.classList.remove('selected');
+            selectedSeats = selectedSeats.filter(id => id !== seatId);
+            selectedSeatNumbers = selectedSeatNumbers.filter(num => num !== seatNumber);
+        } else if (selectedSeats.length < maxSeats) {
+            // 選擇新座位
+            seat.classList.add('selected');
+            selectedSeats.push(seatId);
+            selectedSeatNumbers.push(seatNumber);
+        } else {
+            // 已達最大選擇數
+            alert(`最多只能選擇 ${maxSeats} 個座位`);
+            return;
+        }
+
+        // 更新已選座位顯示
+        selectedSeatsInput.value = JSON.stringify(selectedSeats);
+        selectedSeatsCount.textContent = selectedSeats.length;
+        
+        // 更新確認按鈕狀態
+        bookButton.disabled = selectedSeats.length !== maxSeats;
+    });
+});
+</script>
+
+<style>
+.booking-form-container {
+    background-color: #f8f9fa;
+    width: 100%;
+    padding: 20px;
+}
+
+.seat-selection-container {
+    width: 100%;
+}
+
+/* 添加水平滾動容器 */
+.seat-map-scroll-container {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 10px;
+}
+
+.seat-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    min-width: max-content; /* 確保內容不縮小 */
+}
+
+.seat-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.row-label {
+    width: 30px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.seat {
+    width: 32px;
+    height: 32px;
+    background-color: #444;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: all 0.2s ease;
+    font-size: 0.8rem;
+}
+
+.seat.available:hover {
+    background-color: #6feaf6;
+    transform: scale(1.1);
+}
+
+.seat.selected {
+    background-color: #6feaf6;
+    transform: scale(1.1);
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+.seat.occupied {
+    background-color: #ff4444;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.stair {
+    width: 32px;
+    height: 32px;
+    background-color: #ddd;
+    border: 1px solid #ccc;
+    border-radius: 0;
+}
+
+.empty-seat {
+    width: 32px;
+    height: 32px;
+    background-color: transparent;
+}
+
+.screen {
+    width: 80%;
+    max-width: 500px;
+    height: 30px;
+    margin: 0 auto 30px;
+    text-align: center;
+    position: relative;
+}
+
+.screen-inner {
+    background: linear-gradient(to bottom, #666, #333);
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.seat-legend {
+    margin-bottom: 20px;
+}
+
+.seat-legend-item {
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+    display: inline-block;
+}
+
+.seat-legend-item.available {
+    background-color: #444;
+}
+
+.seat-legend-item.selected {
+    background-color: #6feaf6;
+}
+
+.seat-legend-item.occupied {
+    background-color: #ff4444;
+}
+
+/* 確保按鈕始終可見 */
+#bookButton {
+    position: relative;
+    z-index: 100;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    margin-bottom: 40px !important; /* 減少空間，原來是 80px */
+}
+
+/* 修改 footer 樣式確保不會遮擋內容 */
+.footer {
+    position: relative !important;
+    margin-top: 20px;
+}
+
+/* 增加底部填充，確保內容不被 footer 覆蓋 */
+.container-fluid {
+    padding-bottom: 50px; /* 減少間距，原來是 100px */
+}
+
+/* RWD 調整 */
+@media (max-width: 768px) {
+    .container-fluid {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    .seat {
+        width: 30px;
+        height: 30px;
+        font-size: 0.7rem;
+    }
+    
+    .stair, .empty-seat {
+        width: 30px;
+        height: 30px;
+    }
+    
+    .row-label {
+        width: 25px;
+        font-size: 0.9rem;
+    }
+    
+    .screen {
+        width: 90%;
+        margin-bottom: 20px;
+    }
+    
+    #bookButton {
+        font-size: 1rem;
+        padding: 10px;
+    }
+    
+    .container-fluid {
+        padding-bottom: 40px; /* 減少間距，原來是 120px */
+    }
+}
+</style>
+{% endblock %}
