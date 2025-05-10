@@ -12,7 +12,7 @@ SECRET_KEY = secrets.token_urlsafe(50)
 DEBUG = False
 
 # 允許的主機設置 - 添加您的 PythonAnywhere 域名
-ALLOWED_HOSTS = ['yourusername.pythonanywhere.com']  # Replace with your PythonAnywhere username
+ALLOWED_HOSTS = ['vonni.pythonanywhere.com', 'localhost', '127.0.0.1']  # Replace with your PythonAnywhere username
 
 # Application definition
 INSTALLED_APPS = [
